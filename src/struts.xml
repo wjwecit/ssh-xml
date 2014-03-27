@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+
+	<!-- 请求参数的编码方式 -->
+	<constant name="struts.i18n.encoding" value="UTF-8" />
+
+
+	<constant name="struts.devMode" value="true" />
+	<!-- <constant name="struts.convention.action.suffix" value="Controller"/> 
+		<constant name="struts.convention.action.mapAllMatches" value="true"/> <constant 
+		name="struts.convention.default.parent.package" value="rest-default"/> -->
+	<!-- 指定被struts2处理的请求后缀类型。多个用逗号隔开 -->
+	<!-- <constant name="struts.action.extension" value="action,do,htm"/> -->
+
+	<!-- 当struts.xml改动后，是否重新加载。默认值为false(生产环境下使用),开发阶段最好打开 -->
+	<constant name="struts.configuration.xml.reload" value="true" />
+
+	<!-- 设置浏览器是否缓存静态内容。默认值为true(生产环境下使用),开发阶段最好关闭 -->
+	<constant name="struts.serve.static.browserCache" value="false" />
+
+	<!-- 指定由spring负责action对象的创建 -->
+	<constant name="struts.objectFactory" value="spring" />
+
+	<!-- 是否开启动态方法调用 -->
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+
+	<!-- <constant name="struts.convention.default.parent.package" value="default" 
+		/> -->
+	<!-- <constant name="struts.convention.package.locators" value="action" 
+		/> -->
+
+
+
+	<package name="condefault" namespace="/" extends="convention-default">
+
+		<interceptors>
+			<!-- 配置注解拦截器 -->
+			<interceptor name="annotationInterceptor"
+				class="com.opensymphony.xwork2.interceptor.annotations.AnnotationWorkflowInterceptor" />
+			<interceptor name="weilog" class="wei.ssh.struts.inceptor.WeiLogInceptor"/>
+			<interceptor-stack name="annotatedStack">
+				<interceptor-ref name="annotationInterceptor" />
+				<interceptor-ref name="weilog"/>
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors>
+		
+		<default-action-ref name="index" />
+		<global-results>
+			<result name="error">/error.jsp</result>
+		</global-results>
+
+		<global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception"
+				result="error" />
+		</global-exception-mappings>
+
+		<action name="index">
+			<result>index.jsp</result>
+		</action>
+	</package>
+	
+	<package name="annodefault" namespace="/" extends="json-default">
+
+		<interceptors>
+			<!-- 配置注解拦截器 -->
+			<interceptor name="annotationInterceptor"
+				class="com.opensymphony.xwork2.interceptor.annotations.AnnotationWorkflowInterceptor" />
+			<interceptor-stack name="annotatedStack">
+				<interceptor-ref name="annotationInterceptor" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors>
+		
+		<default-action-ref name="error" />
+		<global-results>
+			<result name="error">/error.jsp</result>
+		</global-results>
+		
+		<global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception"
+				result="error" />
+		</global-exception-mappings>
+	</package>
+
+	<!-- <include file="example.xml" /> -->
+
+	<!-- Add packages here -->
+
+</struts>
