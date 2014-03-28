@@ -52,6 +52,8 @@ public class QueryService implements IService {
 	public void updateViaHibernate(final Object object) {
 		AreaChina ac = (AreaChina) object;
 		htemplate.saveOrUpdate(ac);
+		htemplate.getSessionFactory().getCache().evictQueryRegion("cache2");
+		
 	}
 
 	@SuppressWarnings("unchecked")
