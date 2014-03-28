@@ -43,13 +43,17 @@ public class AreaChinaAction extends ActionSupport {
 	
 	private List<UserInfo> userInfos;
 	
+	private AreaChina ac;
+	
 	@Action(value="updateAC",results={@Result(name="success", type = "json", params = {
 			"encoding", "UTF-8", "statusCode", "200", "noCache", "true",
 			"enableGZIP", "true" })})
 	public String updateAC() throws Exception {		
-		AreaChina ac=service.getAreaChina(755);
+		code=755;
+		AreaChina ac=service.getAreaChina(code);
 		ac.setAreaName(String.valueOf(Math.random()));
 		service.updateViaHibernate(ac);
+		this.ac=service.getAreaChina(code);
 		log.info("updateAC completed!!!");
 		return SUCCESS;
 	}
@@ -77,5 +81,13 @@ public class AreaChinaAction extends ActionSupport {
 
 	public void setUserInfos(List<UserInfo> userInfos) {
 		this.userInfos = userInfos;
+	}
+
+	public AreaChina getAc() {
+		return ac;
+	}
+
+	public void setAc(AreaChina ac) {
+		this.ac = ac;
 	}
 }
