@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+	http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-3.2.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+	
+	<!-- 数据源 -->
+	<bean id="dataSourceMysql" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/test" />
+		<property name="username" value="root" />
+		<property name="password" value="123" />
+		<property name="maxActive" value="2" />
+		<property name="maxIdle" value="2" />
+		<property name="maxWait" value="3000" />
+	</bean>
+	
+	<!-- 将事务管理交给spring -->
+	<bean id="txManagerMysql" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSourceMysql" />
+		<qualifier value="txMysql"/>
+	</bean>
+	
+	<!-- 事务模板 -->
+	<bean id="sharedTransactionTemplateMysql" class="org.springframework.transaction.support.TransactionTemplate">
+		<property name="timeout" value="1200" />
+		<property name="transactionManager" ref="txManagerMysql" />
+	</bean>	
+	
+	<!-- jdbc模板操作 -->
+	<bean id="jdbcTemplateMysql" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSourceMysql"/>
+	</bean>
+	
+	<!-- 注解事务 -->
+	<tx:annotation-driven transaction-manager="txManagerMysql"/>
+	
+	<!-- 加载注解bean组件 -->
+	<context:component-scan base-package="wei.ssh.model,wei.ssh.service,wei.ssh.action" />
+	
+	<!-- 注解aspec处理 -->
+	<bean class="org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect" factory-method="aspectOf"/>
+	
+	
+	<bean id="weifmt" class="wei.web.mvc.interceptor.WeiFormatInterceptor"/>
+	<!-- 通过aop定义事务增强切面 -->
+	<!--
+    <aop:config>
+        <aop:aspect id="fmt" ref="weifmt">
+        	<aop:pointcut id="target" expression="execution(* wei.ssh.action.*.execute*(..))"/>
+        	<aop:after method="afterFormat" pointcut-ref="target"/>
+        </aop:aspect>
+    </aop:config>
+	-->
+	<!-- 显式使用cglib动态代理,放弃默认的JDK代理 -->
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+	
+ 	<!-- hibernate缓存设置 -->
+	<bean id="hibernateSessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="dataSourceMysql" />		
+		<property name="hibernateProperties">
+			<props>  
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>  
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.jdbc.fetch_size">80</prop>
+                <prop key="hibernate.jdbc.batch_size">35</prop>
+                <prop key="hibernate.cache.use_query_cache">true</prop>
+                <prop key="hibernate.cache.use_second_level_cache">true</prop>
+                <prop key="hibernate.cache.provider_class">net.sf.ehcache.hibernate.EhCacheProvider</prop>
+                <prop key="hibernate.generate_statistics">true</prop>
+            </props>
+		</property>
+		<property name="packagesToScan">
+			 <list>
+            	<value>wei.ssh.model</value>
+        	 </list>
+        </property>
+	</bean>
+	
+	<!-- 开启hibernate -->
+	 <bean id="hibernateTemplete" class="org.springframework.orm.hibernate3.HibernateTemplate">
+	  	<property name="sessionFactory" ref="hibernateSessionFactory"></property>
+	  	<property name="cacheQueries" value="true"/> 
+	 </bean>
+
+	<!-- hibernate事务管理 -->
+	<bean id="hibernateTransactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="hibernateSessionFactory" />
+	</bean>
+</beans>
